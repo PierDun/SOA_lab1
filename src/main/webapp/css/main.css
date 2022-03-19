@@ -1,0 +1,15 @@
+.main-page {
+    display: flex;
+}
+
+.filter {
+    float: right;
+    width: 25%;
+    margin: 20px 20px 20px 40px;
+}
+
+.table {
+    float: left;
+    width: 70%;
+    margin: 20px;
+}
