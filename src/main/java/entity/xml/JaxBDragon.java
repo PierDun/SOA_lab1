@@ -6,6 +6,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 
@@ -23,6 +24,7 @@ public class JaxBDragon implements Serializable {
     @XmlElement(name = "type")
     private DragonType type;
     @XmlElement(name = "creationDate")
+    @XmlJavaTypeAdapter(ZonedDateTimeAdapter.class)
     private ZonedDateTime creationDate = ZonedDateTime.now();
     @XmlElement(name = "description")
     private String description;

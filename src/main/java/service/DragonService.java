@@ -50,8 +50,10 @@ public class DragonService {
     public void updateDragon (HttpServletRequest request, HttpServletResponse response) throws Exception {
         try {
             String dragonBody = getBody(request);
+
+            String x = dragonBody.substring(dragonBody.indexOf("<x>") + 3, dragonBody.indexOf("</x>"));
+
             JaxBDragon dragon = JaxB.fromStr(dragonBody, JaxBDragon.class);
-            dragon.setCreationDate(ZonedDateTime.now());
             validator.validate(dragon);
             Optional<Dragon> dragonFromBD = dragonDAO.getDragonById(dragon.getId());
             if (dragonFromBD.isPresent()) {

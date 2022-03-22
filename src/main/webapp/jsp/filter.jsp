@@ -143,7 +143,7 @@
         </form>
     </div>
     <div class="tab-pane fade" id="age">
-        <form action="${pageContext.request.contextPath}/dragons/" method="get" class="filter-form" name="aggregateFunctions">
+        <form action="${pageContext.request.contextPath}/age/" method="get" class="filter-form" name="aggregateFunctions">
             <select id = "function">
                 <option value="avg" selected>Average</option>
                 <option value="sum">Sum</option>

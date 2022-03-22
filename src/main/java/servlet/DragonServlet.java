@@ -47,7 +47,6 @@ public class DragonServlet extends HttpServlet {
                 default:
                     getDragons(request, response);
                     break;
-
             }
         } catch (Exception ex) {
             throw new ServletException(ex);
@@ -82,7 +81,13 @@ public class DragonServlet extends HttpServlet {
     }
 
     private void getDragonById (HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        int id = Integer.parseInt(request.getParameter("id"));
+        int id = 0;
+        try {
+            id = Integer.parseInt(request.getParameter("id"));
+        } catch (NumberFormatException nfe) {
+            request.setAttribute("msg", "The following value can't be a number");
+            request.getRequestDispatcher("/jsp/get-by-id.jsp").forward(request, response);
+        }
         Optional<Dragon> dragon = dragonDAO.getDragonById(id);
         if (dragon.isPresent()) {
             request.setAttribute("dragon", dragon.get());

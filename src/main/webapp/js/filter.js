@@ -94,13 +94,28 @@ getDragonsWithLesserColor.addEventListener('submit',
 const sortForm = document.forms.namedItem("sortForm");
 sortForm.addEventListener('submit',
     function (ev) {
+        const columns = document.querySelectorAll('input[name="sortBy"]');
+        const orders = document.querySelectorAll('input[name="order"]');
+
+        let selectedColumn;
+        for (const radioButton of columns) {
+            if (radioButton.checked) {
+                selectedColumn = radioButton.value;
+                break;
+            }
+        }
+
+        let selectedOrder;
+        for (const radioButton of orders) {
+            if (radioButton.checked) {
+                selectedOrder = radioButton.value;
+                break;
+            }
+        }
+
         let url = "/Lab1-1.0-SNAPSHOT/dragons/sort?selectedPage=" + document.getElementById("selectedPage").value + "&numberOfRecordsPerPage="
-            +  document.getElementById("numberOfRecordsPerPage").value+ "&";
-        $('input[type=radio]').filter(':checked').each(function () {
-            const inputField = $(this);
-            url += inputField.attr('name') + "=" + inputField.val() + "&";
-        });
-        url = url.substring(0, url.length - 1);
+            + document.getElementById("numberOfRecordsPerPage").value + "&sortBy=" + selectedColumn + "&order=" + selectedOrder;
+
         let request = new XMLHttpRequest();
         request.responseType = "text";
         request.open("GET", url);

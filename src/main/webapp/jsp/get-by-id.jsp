@@ -16,12 +16,13 @@
 <jsp:include page="menu.jsp">
   <jsp:param name="id" value="active" />
 </jsp:include>
-<form align="center" action="${pageContext.request.contextPath}/dragons" method="get" style="margin-top: 20px">
+<form align="center" action="${pageContext.request.contextPath}/dragons/" method="get" style="margin-top: 20px" name="getDragonByID">
   <caption><h2>Get dragon by id</h2></caption>
   <input class="form-control mt-3" type="text" name="id" value="0" style="width: 30%; margin: 0 auto;"/>
   <c:if test="${dragon == null && msg != null}">
     <div class="mx-auto" style="color: red">
-      <h7>${msg}</h7>       </div>
+      <h7>${msg}</h7>
+    </div>
   </c:if>
   <input type="submit" name="get" class="btn btn-primary mx-auto mt-3" value="find"/>
 </form>

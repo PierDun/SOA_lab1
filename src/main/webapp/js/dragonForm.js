@@ -20,10 +20,9 @@ function addDragon() {
     request.open("POST", "/Lab1-1.0-SNAPSHOT/dragons");
     request.send(newDragon);
     request.onreadystatechange = function() {
-        window.open('/Lab1-1.0-SNAPSHOT/jsp/main-page.jsp');
+        getErrorMsg(request);
     };
 }
-
 
 function updateDragon() {
     const updateDragonForm = document.forms.namedItem("updateDragonForm");
@@ -39,15 +38,17 @@ function updateDragon() {
         '         <age>' + formData.get('age') + '</age>' +
         '         <type>' + formData.get('type') + '</type>' +
         '         <color>' + formData.get('color') + '</color>' +
+        '         <creationDate>' + formData.get('creationDate') + '</creationDate>' +
         '         <description>' + formData.get('description') + '</description>' +
         '         <cave>' +
         '            <depth>' + formData.get('depth') + '</depth>' +
         '         </cave>' +
         '      </dragon>'
+    request.responseType = 'text';
     request.open("PUT", "/Lab1-1.0-SNAPSHOT/dragons");
     request.send(newDragon);
     request.onreadystatechange = function() {
-        window.location = '/Lab1-1.0-SNAPSHOT/dragons';
+        getErrorMsg(request);
     };
 }
 
@@ -58,7 +59,7 @@ function getErrorMsg(request) {
     } else {
         console.log(request.response);
         let rawData = $.parseXML(request.response).getElementsByTagName("errors")[0].getElementsByTagName("errors")[0];
-        let k, i, j, oneRecord, oneObject, innerObject;
+        let i;
         for (i = 0; i < rawData.children.length; i++) {
             errorMsg += rawData.children[i].children[2].textContent + "<br>"
         }
