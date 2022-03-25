@@ -176,15 +176,17 @@ public class DragonDAO {
         List<Dragon> dragons = null;
         boolean isJoin = false;
         StringBuilder queryStr = new StringBuilder("from dragon c");
-        if (params.containsKey("x1") || params.containsKey("y1") || params.containsKey("depth1")) {
+        if (params.containsKey("x1") || params.containsKey("y1") || params.containsKey("depth1") ||
+        params.get("sortBy")[0].equals("x") || params.get("sortBy")[0].equals("y") || params.get("sortBy")[0].equals("depth")) {
             isJoin = true;
-            if (params.containsKey("x1") || params.containsKey("y1")) {
+            if (params.containsKey("x1") || params.containsKey("y1") ||
+                    params.get("sortBy")[0].equals("x") || params.get("sortBy")[0].equals("y")) {
                 queryStr.append(" join c.coordinates cor");
             }
-            if (params.containsKey("depth1")) {
+            if (params.containsKey("depth1") || params.get("sortBy")[0].equals("depth")) {
                 queryStr.append(" join c.cave g");
             }
-            queryStr.append(" where");
+            if (params.size() > 4) queryStr.append(" where");
             if (params.containsKey("x1")) {
                 queryStr.append(" cor.x BETWEEN '").append(params.get("x1")[0]).append("' AND '").append(params.get("x2")[0]).append("' AND");
             }
@@ -192,11 +194,11 @@ public class DragonDAO {
                 queryStr.append(" cor.y BETWEEN '").append(params.get("y1")[0]).append("' AND '").append(params.get("y2")[0]).append("' AND");
             }
             if (params.containsKey("depth1")) {
-                queryStr.append(" g.height BETWEEN '").append(params.get("depth1")[0]).append("' AND '").append(params.get("depth2")[0]).append("' AND");
+                queryStr.append(" g.depth BETWEEN '").append(params.get("depth1")[0]).append("' AND '").append(params.get("depth2")[0]).append("' AND");
             }
         }
 
-        if (!queryStr.toString().contains("where")) {
+        if (!queryStr.toString().contains("where") && params.size() > 4) {
             queryStr.append(" where");
         }
         if (params.containsKey("name")) {
@@ -252,13 +254,24 @@ public class DragonDAO {
             queryStr = new StringBuilder(queryStr.substring(0, queryStr.length() - 4));
         }
 
+        queryStr.append(" order by ");
+
+        if (params.get("sortBy")[0].equals("x") || params.get("sortBy")[0].equals("y")) {
+            if (isJoin) queryStr.append("cor.");
+        }
+        if (params.get("sortBy")[0].equals("depth")) {
+            if (isJoin) queryStr.append("g.");
+        }
+
+        queryStr.append(params.get("sortBy")[0]).append(" ").append(params.get("order")[0]);
+
         try (Session session = HibernateUtil.getFactory().openSession()) {
             transaction = session.beginTransaction();
             if (isJoin) {
-                List<Object[]> citiesListWithExtraColumns = session.createQuery(queryStr.toString()).getResultList();
+                List<Object[]> dragonListWithExtraColumns = session.createQuery(queryStr.toString()).getResultList();
                 dragons = new ArrayList<>();
-                for (Object[] cityWithExtraColumns : citiesListWithExtraColumns) {
-                    dragons.add((Dragon) cityWithExtraColumns[0]);
+                for (Object[] dragonWithExtraColumns : dragonListWithExtraColumns) {
+                    dragons.add((Dragon) dragonWithExtraColumns[0]);
                 }
             } else {
                 dragons = session.createQuery(queryStr.toString()).getResultList();

@@ -45,7 +45,7 @@ function updateDragon() {
         '         </cave>' +
         '      </dragon>'
     request.responseType = 'text';
-    request.open("PUT", "/Lab1-1.0-SNAPSHOT/dragons");
+    request.open("PUT", "/Lab1-1.0-SNAPSHOT/dragons/" + formData.get('id'));
     request.send(newDragon);
     request.onreadystatechange = function() {
         getErrorMsg(request);

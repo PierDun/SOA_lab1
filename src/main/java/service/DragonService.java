@@ -10,6 +10,7 @@ import org.simpleframework.xml.core.Persister;
 import validator.DragonValidator;
 import util.JaxB;
 import validator.ValidateFieldsException;
+import validator.XMLvalidator;
 
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.RequestDispatcher;
@@ -31,15 +32,24 @@ public class DragonService {
     private final Dragons dragonsList = new Dragons();
     private final Errors errorsList = new Errors();
     private final DragonValidator validator = new DragonValidator();
+    private final XMLvalidator xmlValidator = new XMLvalidator();
 
     public void createDragon(HttpServletRequest request, HttpServletResponse response) throws Exception {
         try {
             String dragonBody = getBody(request);
-            JaxBDragon dragon = JaxB.fromStr(dragonBody, JaxBDragon.class);
-            dragon.setCreationDate(ZonedDateTime.now());
-            validator.validate(dragon);
-            dragonDAO.addDragon(dragon.toDragon());
-            response.setStatus(200);
+
+            if (xmlValidator.checkForTags(dragonBody) && xmlValidator.checkForCorrectValues(dragonBody)) {
+                JaxBDragon dragon = JaxB.fromStr(dragonBody, JaxBDragon.class);
+                dragon.setCreationDate(ZonedDateTime.now());
+                validator.validate(dragon);
+                dragonDAO.addDragon(dragon.toDragon());
+                response.setStatus(200);
+                response.getWriter().print("Dragon" + dragon.getName() + "was successfully created");
+            } else {
+                response.setStatus(400);
+                response.getWriter().print("Couldn't parse string as XML");
+            }
+
         } catch (ValidateFieldsException ex) {
             sendErrorList(request, response, ex);
         } catch (IllegalAccessException | JAXBException e) {
@@ -51,18 +61,22 @@ public class DragonService {
         try {
             String dragonBody = getBody(request);
 
-            String x = dragonBody.substring(dragonBody.indexOf("<x>") + 3, dragonBody.indexOf("</x>"));
-
-            JaxBDragon dragon = JaxB.fromStr(dragonBody, JaxBDragon.class);
-            validator.validate(dragon);
-            Optional<Dragon> dragonFromBD = dragonDAO.getDragonById(dragon.getId());
-            if (dragonFromBD.isPresent()) {
-                Dragon updatingDragon = dragonFromBD.get();
-                updatingDragon.update(dragon);
-                dragonDAO.updateDragon(updatingDragon);
-                response.setStatus(200);
+            if (xmlValidator.checkForTags(dragonBody) && xmlValidator.checkForCorrectValues(dragonBody)) {
+                JaxBDragon dragon = JaxB.fromStr(dragonBody, JaxBDragon.class);
+                validator.validate(dragon);
+                Optional<Dragon> dragonFromBD = dragonDAO.getDragonById(dragon.getId());
+                if (dragonFromBD.isPresent()) {
+                    Dragon updatingDragon = dragonFromBD.get();
+                    updatingDragon.update(dragon);
+                    dragonDAO.updateDragon(updatingDragon);
+                    response.setStatus(200);
+                    response.getWriter().print("Dragon " + dragon.getName() + " was successfully updated");
+                } else {
+                    throw new EntityNotFoundException("Cannot update dragon");
+                }
             } else {
-                throw new EntityNotFoundException("Cannot update dragon");
+                response.setStatus(400);
+                response.getWriter().print("Couldn't parse string as XML");
             }
         } catch (ValidateFieldsException ex) {
             sendErrorList(request, response, ex);
@@ -71,23 +85,26 @@ public class DragonService {
         }
     }
 
-    public void deleteDragon (HttpServletRequest request, HttpServletResponse response) {
-        int id = Integer.parseInt(request.getParameter("id"));
-        if (dragonDAO.deleteDragon(id)) {
-            response.setStatus(200);
-        } else {
-            throw new EntityNotFoundException("Cannot find dragon with id " + id);
+    public void deleteDragon (HttpServletRequest request, HttpServletResponse response, String dragon_id) {
+        try {
+            int id = Integer.parseInt(dragon_id);
+            if (dragonDAO.deleteDragon(id)) {
+                response.setStatus(200);
+            } else {
+                throw new EntityNotFoundException("Cannot find dragon with id " + id);
+            }
+        } catch (NumberFormatException e) {
+            throw new EntityNotFoundException("The following value isn't numeric");
         }
     }
 
     public void getAllDragons (HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         int numberOfRecordsPerPage = 10;
-        int selectedPage = 1;
         List<Dragon> dragons = dragonDAO.getAllDragons();
         int dragonsQuality = (int)Math. ceil( (double) (dragons.size()+1) / numberOfRecordsPerPage);
         request.setAttribute("pagesQuality", IntStream.range(1, (int)Math. ceil( dragonsQuality + 1)).toArray());
         request.setAttribute("dragonsLength", dragons.size());
-        int from = (selectedPage - 1) * numberOfRecordsPerPage;
+        int from = 0;
         request.setAttribute("dragons", Arrays.copyOfRange(dragons.toArray(), from , from + numberOfRecordsPerPage) );
         RequestDispatcher dispatcher = request.getRequestDispatcher("/jsp/main-page.jsp");
         dispatcher.forward(request, response);
@@ -129,8 +146,13 @@ public class DragonService {
 
     public void filterDragons(HttpServletRequest request, HttpServletResponse response) throws Exception {
         Map<String, String[]> queryMap = request.getParameterMap();
-        List<Dragon> filteredDragons = dragonDAO.getFilteredDragons(queryMap);
-        sendDragons(request, response, filteredDragons);
+        if (queryMap.size() > 2) {
+            List<Dragon> filteredDragons = dragonDAO.getFilteredDragons(queryMap);
+            sendDragons(request, response, filteredDragons);
+        } else {
+            response.setStatus(400);
+            response.getWriter().print("Не выбраны поля для фильтрации.");
+        }
     }
 
     public void getAgeAvg(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -147,7 +169,8 @@ public class DragonService {
         response.getWriter().print("The sum is " + sum);
     }
 
-    public void getDragonsWithLesserColor (HttpServletRequest request, HttpServletResponse response, String color) throws Exception {
+    public void getDragonsWithLesserColor (HttpServletRequest request, HttpServletResponse response, String color)
+            throws Exception {
         List<Dragon> dragons = dragonDAO.getDragonsWithLesserColor(color);
         sendDragons(request, response, dragons);
     }

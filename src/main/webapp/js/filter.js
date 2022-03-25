@@ -24,12 +24,33 @@ function filterListener(form, url, ev) {
     let formData = new FormData(form);
     let request = new XMLHttpRequest();
     request.responseType = "text";
-    let getStr = "?selectedPage=" + document.getElementById("selectedPage").value + "&numberOfRecordsPerPage="+  document.getElementById("numberOfRecordsPerPage").value+ "&";
+    let getStr = "?selectedPage=" + document.getElementById("selectedPage").value + "&numberOfRecordsPerPage=" +
+        document.getElementById("numberOfRecordsPerPage").value+ "&";
     for (let pair of formData.entries()) {
         getStr += pair[0] + '=' + pair[1] + '&';
     }
-    getStr = url + getStr.substring(0, getStr.length - 1);
-    request.open("GET", getStr);
+
+    const columns = document.querySelectorAll('input[name="sortBy"]');
+    const orders = document.querySelectorAll('input[name="order"]');
+
+    let selectedColumn;
+    for (const radioButton of columns) {
+        if (radioButton.checked) {
+            selectedColumn = radioButton.value;
+            break;
+        }
+    }
+
+    let selectedOrder;
+    for (const radioButton of orders) {
+        if (radioButton.checked) {
+            selectedOrder = radioButton.value;
+            break;
+        }
+    }
+
+    getStr += "&sortBy=" + selectedColumn + "&order=" + selectedOrder;
+    request.open("GET", url + getStr);
 
     request.onload = function (oEvent) {
         createDragonTable(request);
@@ -47,7 +68,7 @@ const aggregateFunctions = document.forms.namedItem("aggregateFunctions");
 aggregateFunctions.addEventListener('submit',
     function (ev) {
         let url = "/Lab1-1.0-SNAPSHOT/age/" + document.getElementById("function").value;
-        console.log(url);
+        document.forms.namedItem("aggregateFunctions").action = url;
         let request = new XMLHttpRequest();
         request.open("GET", url);
         request.responseType = 'text';
@@ -141,7 +162,7 @@ function changePagesQuantity(dragonsQuantity) {
 
 function deleteDragon(id) {
     let request = new XMLHttpRequest();
-    request.open("DELETE", "/Lab1-1.0-SNAPSHOT/dragons?id=" + id);
+    request.open("DELETE", "/Lab1-1.0-SNAPSHOT/dragons/" + id);
     request.onload = function (oEvent) {
         window.location = '/Lab1-1.0-SNAPSHOT/dragons';
     };

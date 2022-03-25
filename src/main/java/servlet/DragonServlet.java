@@ -17,8 +17,6 @@ public class DragonServlet extends HttpServlet {
     private final DragonDAO dragonDAO = new DragonDAO();
     private final DragonService dragonService = new DragonService();
 
-    public void init() {}
-
     @Override
     protected void doGet (HttpServletRequest request, HttpServletResponse response)
             throws ServletException {
@@ -28,24 +26,15 @@ public class DragonServlet extends HttpServlet {
                 case "/Lab1-1.0-SNAPSHOT/dragons/filter":
                     filterDragons(request, response);
                     break;
-                case "/Lab1-1.0-SNAPSHOT/dragons/avg":
-                    getAgeAvg(request, response);
-                    break;
-                case "/Lab1-1.0-SNAPSHOT/dragons/sum":
-                    getAgeSum(request, response);
-                    break;
                 case "/Lab1-1.0-SNAPSHOT/dragons/sort":
                     sort(request, response);
                     break;
                 case "/Lab1-1.0-SNAPSHOT/dragons":
-                    if (request.getParameterMap().isEmpty()) {
-                        getDragons(request, response);
-                    } else {
-                        getDragonById(request, response);
-                    }
+                    getDragons(request, response);
                     break;
                 default:
-                    getDragons(request, response);
+                    String id = action.substring(action.indexOf("/dragons/") + 9);
+                    getDragonById(request, response, id);
                     break;
             }
         } catch (Exception ex) {
@@ -73,18 +62,21 @@ public class DragonServlet extends HttpServlet {
 
     @Override
     protected void doDelete (HttpServletRequest request, HttpServletResponse response) {
-        dragonService.deleteDragon(request, response);
+        String action = request.getRequestURI();
+        String id = action.substring(action.indexOf("/dragons/") + 9);
+        dragonService.deleteDragon(request, response, id);
     }
 
     public void getDragons (HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         dragonService.getAllDragons(request, response);
     }
 
-    private void getDragonById (HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    private void getDragonById (HttpServletRequest request, HttpServletResponse response, String dragon_id) throws ServletException, IOException {
         int id = 0;
         try {
-            id = Integer.parseInt(request.getParameter("id"));
+            id = Integer.parseInt(dragon_id);
         } catch (NumberFormatException nfe) {
+            response.setStatus(400);
             request.setAttribute("msg", "The following value can't be a number");
             request.getRequestDispatcher("/jsp/get-by-id.jsp").forward(request, response);
         }
@@ -92,6 +84,7 @@ public class DragonServlet extends HttpServlet {
         if (dragon.isPresent()) {
             request.setAttribute("dragon", dragon.get());
         } else {
+            response.setStatus(400);
             request.setAttribute("msg", "Not found dragon with id = " + id);
         }
         request.getRequestDispatcher("/jsp/get-by-id.jsp").forward(request, response);
@@ -99,14 +92,6 @@ public class DragonServlet extends HttpServlet {
 
     private void filterDragons (HttpServletRequest request, HttpServletResponse response) throws Exception {
         dragonService.filterDragons(request, response);
-    }
-
-    private void getAgeAvg(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        dragonService.getAgeAvg(request, response);
-    }
-
-    private void getAgeSum(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        dragonService.getAgeSum(request, response);
     }
 
     private void sort(HttpServletRequest request, HttpServletResponse response) throws Exception {

@@ -31,10 +31,10 @@
     </div>
     <c:if test="${dragon != null}">
     <div align="center">
-        <form name="updateDragonForm">
+        <form name="updateDragonForm" target="result">
             </c:if>
             <c:if test="${dragon == null}">
-            <form method="post" align="center" name="addDragonForm"></c:if>
+            <form method="post" action="${pageContext.request.contextPath}/dragons/" align="center" name="addDragonForm" target="result"></c:if>
                 <c:if test="${dragon != null}">
                     <input type="hidden" name="id" value="<c:out value='${dragon.id}' />" class="form-control"/>
                     <input type="hidden" name="creationDate" value="<c:out value='${dragon.creationDate}' />" class="form-control"/>
@@ -73,6 +73,7 @@
             <c:if test="${dragon != null}">
             <button class="btn btn-primary mx-auto mt-2" onclick="updateDragon()">Update</button>
             </c:if>
+                <iframe name="result" id="result"> </iframe>
     </div>
 </div>
 </body>
